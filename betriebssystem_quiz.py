@@ -1408,21 +1408,62 @@ class VirtuelleMaschinen:
 
 import random
 
+import random
+
 
 class Quiz:
-    categories = [ShellScripting, Mainframe, Virtuali, Scheduling, Prozesse, Prozesssynchronisation,
-                  Spverwalt, FestplattenRAID, Dateisysteme, Mikrocomputer, LinuxGrundlagen, VirtuelleMaschinen, CPU_Scheduling, CPlusPlusProzesse]
+    # Die verfügbaren Kategorien
+    categories = [
+        ("ShellScripting", ShellScripting),
+        ("Mainframe", Mainframe),
+        ("Virtualisierung", Virtuali),
+        ("Scheduling", Scheduling),
+        ("Prozesse", Prozesse),
+        ("Prozesssynchronisation", Prozesssynchronisation),
+        ("Speicherverwaltung", Spverwalt),
+        ("FestplattenRAID", FestplattenRAID),
+        ("Dateisysteme", Dateisysteme),
+        ("Mikrocomputer", Mikrocomputer),
+        ("LinuxGrundlagen", LinuxGrundlagen),
+        ("VirtuelleMaschinen", VirtuelleMaschinen),
+        ("CPU_Scheduling", CPU_Scheduling),
+        ("CPlusPlusProzesse", CPlusPlusProzesse)
+    ]
 
     def __init__(self):
         self.score = 0
         self.total_questions = 50  # Hier auf 50 stellen
+        self.selected_categories = []  # Liste der vom Benutzer ausgewählten Kategorien
+
+    def show_categories(self):
+        print("Verfügbare Kategorien:")
+        for idx, (name, _) in enumerate(self.categories, 1):
+            print(f"{idx}. {name}")
+
+    def select_categories(self):
+        self.show_categories()
+
+        # Benutzereingabe für Kategorien
+        selected = input(
+            "Wählen Sie die Kategorien, aus denen Fragen kommen sollen (z.B. 1, 3, 5 für mehrere Kategorien): ")
+        selected_indexes = [int(x.strip()) - 1 for x in selected.split(",")]
+
+        # Die ausgewählten Kategorien hinzufügen
+        self.selected_categories = [self.categories[i][1] for i in selected_indexes]
+
+        if not self.selected_categories:
+            print("Keine gültigen Kategorien ausgewählt. Standardkategorien werden verwendet.")
+            self.selected_categories = [category[1] for category in self.categories]  # Alle Kategorien verwenden
 
     def start(self):
         print("Willkommen zum IT-Quiz!")
 
-        # Pool aller Fragen aus allen Kategorien zusammenstellen
+        # Den Benutzer nach den Kategorien fragen
+        self.select_categories()
+
+        # Pool aller Fragen aus den ausgewählten Kategorien zusammenstellen
         questions_pool = []
-        for category in self.categories:
+        for category in self.selected_categories:
             questions_pool.extend(category.questions)
 
         # Wenn weniger als 50 Fragen im Pool sind, wird der Pool auf die vorhandene Anzahl begrenzt
@@ -1441,15 +1482,23 @@ class Quiz:
             for j, answer in enumerate(answers, 1):
                 print(f"{j}. {answer}")
 
-            try:
-                choice = int(input("Ihre Wahl (1-4): "))
-                if answers[choice - 1] == correct:
-                    print("Richtig!")
-                    self.score += 1
-                else:
-                    print(f"Falsch! Die richtige Antwort war: {correct}")
-            except (ValueError, IndexError):
-                print(f"Ungültige Eingabe. Die richtige Antwort war: {correct}")
+            # Schleife bis eine gültige Eingabe erfolgt
+            while True:
+                try:
+                    choice = int(input("Ihre Wahl (1-4): "))
+
+                    # Sicherstellen, dass die Eingabe zwischen 1 und 4 liegt
+                    if 1 <= choice <= 4:
+                        if answers[choice - 1] == correct:
+                            print("Richtig!")
+                            self.score += 1
+                        else:
+                            print(f"Falsch! Die richtige Antwort war: {correct}")
+                        break  # Bei einer gültigen Antwort aus der Schleife heraus
+                    else:
+                        print("Ungültige Eingabe. Bitte geben Sie eine Zahl zwischen 1 und 4 ein.")
+                except (ValueError, IndexError):
+                    print("Ungültige Eingabe. Bitte geben Sie eine Zahl zwischen 1 und 4 ein.")
 
         self.calculate_grade()
 
@@ -1464,7 +1513,7 @@ class Quiz:
         elif percentage >= 60:
             grade = "4.0"
         else:
-            grade = "5.0 du kek"
+            grade = "5.0"
 
         print(f"\nQuiz beendet! Sie haben {self.score}/{self.total_questions} Fragen richtig beantwortet.")
         print(f"Ihre Note: {grade}")
